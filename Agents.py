@@ -1,19 +1,18 @@
-import os
-import json
-import openai
 import streamlit as st
+import openai
+import json
 
-# Initialize the OpenAI client using Streamlit secrets
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+# Load OpenAI API key from Streamlit secrets
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 # Agent: Summarization
 
 def summarize_agent(title: str, full_text: str) -> str:
     """
     Summarizes the full article and returns a JSON string with keys:
-      - title: original title
+      - title: article title
       - summary: list of bullet points
-      - impact: string describing potential impact on Indian stock markets
+      - impact: describe impact on Indian stock markets
       - affected: list of sectors/stocks
       - tone: Bullish | Bearish | Neutral
     """
@@ -33,12 +32,11 @@ Provide the following in JSON format exactly:
   "tone": "Bullish|Bearish|Neutral"
 }}
 """
-    response = client.chat.completions.create(
+    response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.4
     )
-    # The new client returns a Response with `choices`
     return response.choices[0].message.content.strip()
 
 # Agent: Aggregation
@@ -46,26 +44,19 @@ Provide the following in JSON format exactly:
 def aggregate_agent(summaries_json: str) -> str:
     """
     Takes a JSON array of article summary objects and returns a markdown string with:
-    - Combined summaries grouped under each article's shortened title
-    - Under each title, an Outlook line that states impact, affected sectors, and tone
+    - Combined summaries under each article title
+    - Outlook line per article indicating impact, affected sectors, and tone
     """
     prompt = f"""
 You are a macro-economic and financial news synthesizer.
 The following is a JSON array of article summaries:
 {summaries_json}
 
-Please produce a markdown report with each article grouped under a shortened header of its title, followed by its summary bullet points and an "Outlook:" line that briefly states the impact, affected sectors, and tone.
+Please produce a markdown report with each article grouped under its title as a header, followed by its summary bullet points and an "Outlook:" line stating impact, affected sectors, and tone.
 
-For example:
-
-## [Shortened Title]
-- summary point 1
-- summary point 2
-Outlook: Describe impact on [sectors], tone is [Bullish/Bearish/Neutral].
-
-Do this for each article in the input, preserving order. Return only the markdown content.
+Return only the markdown content.
 """
-    response = client.chat.completions.create(
+    response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.4
