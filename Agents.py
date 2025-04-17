@@ -3,10 +3,8 @@ import json
 import openai
 import streamlit as st
 
-# Load OpenAI API key from Streamlit secrets
-# Create a file `.streamlit/secrets.toml` in your project root with:
-# OPENAI_API_KEY = "sk-..."
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+# Initialize the OpenAI client using Streamlit secrets
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 # Agent: Summarization
 
@@ -35,14 +33,13 @@ Provide the following in JSON format exactly:
   "tone": "Bullish|Bearish|Neutral"
 }}
 """
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.4
     )
+    # The new client returns a Response with `choices`
     return response.choices[0].message.content.strip()
-
-
 
 # Agent: Aggregation
 
@@ -50,14 +47,14 @@ def aggregate_agent(summaries_json: str) -> str:
     """
     Takes a JSON array of article summary objects and returns a markdown string with:
     - Combined summaries grouped under each article's shortened title
-    - Under each title, a brief outlook using that article's impact and affected sectors
+    - Under each title, an Outlook line that states impact, affected sectors, and tone
     """
     prompt = f"""
 You are a macro-economic and financial news synthesizer.
 The following is a JSON array of article summaries:
 {summaries_json}
 
-Please produce a markdown report with each article grouped under a shortened header of its title, followed by its summary bullet points and an "Outlook:" line that briefly states the impact and affected sectors.
+Please produce a markdown report with each article grouped under a shortened header of its title, followed by its summary bullet points and an "Outlook:" line that briefly states the impact, affected sectors, and tone.
 
 For example:
 
@@ -68,7 +65,7 @@ Outlook: Describe impact on [sectors], tone is [Bullish/Bearish/Neutral].
 
 Do this for each article in the input, preserving order. Return only the markdown content.
 """
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.4
