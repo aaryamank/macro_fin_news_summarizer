@@ -1,0 +1,9 @@
+# do not commit your OpenAI key
+.streamlit/secrets.toml
+
+# compiled python files
+__pycache__/
+*.pyc
+
+# ignore Jupyter notebooks not part of the app
+*.ipynb
