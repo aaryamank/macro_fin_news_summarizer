@@ -29,6 +29,7 @@ Provide the following in JSON format exactly:
   "summary": ["point 1", "point 2", ...],
   "impact": "Describe potential impact on Indian stock markets.",
   "affected": ["Sector1", "Sector2", ...],
+  "affected": ["Stock1", "Stock2", ...],
   "tone": "Bullish|Bearish|Neutral"
 }}
 """
@@ -52,7 +53,7 @@ You are a macro-economic and financial news synthesizer.
 The following is a JSON array of article summaries:
 {summaries_json}
 
-Please produce a markdown report with each article grouped under its title as a header, followed by its summary bullet points and an "Outlook:" line stating impact, affected sectors, and tone.
+Please produce a markdown report with each article grouped under its title as a header, followed by its summary bullet points and an "Outlook:" line stating impact, affected sectors, affected stocks (if any) and tone.
 
 Return only the markdown content.
 """

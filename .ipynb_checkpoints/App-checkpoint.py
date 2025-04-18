@@ -7,7 +7,7 @@ st.set_page_config(page_title="News Swarm", layout="wide")
 st.title("📰 Financial and Economic News Summarizer")
 
 st.markdown("""
-This app scrapes recent macro‑economic and financial articles from Economic Times categories, 
+This app scrapes recent macro‑economic and financial news articles, 
 summarizes each with GPT, and then generates a combined report.
 """)
 
@@ -39,7 +39,7 @@ if st.sidebar.button("Fetch & Summarize"):
     with st.spinner("Aggregating into combined report…"):
         joint_md = aggregate_agent(json.dumps(summaries, indent=2))
 
-    st.markdown("## Combined Macro Summary")
+    st.markdown("## Combined News Report")
     st.markdown(joint_md)
 
     # 4. List Referenced Articles
