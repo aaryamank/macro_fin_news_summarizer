@@ -36,23 +36,21 @@ if st.sidebar.button("Fetch & Summarize"):
     st.success(f"Generated {len(summaries)} summaries.")
 
     # 3. Executive Summary
-    with st.spinner("Generating executive summary…"):
+    with st.expander("Executive Summary: 1-Page Overview of Key Articles with Sector Insights", expanded=False):
         exec_md = executive_summary_agent(json.dumps(summaries, indent=2))
-    st.markdown("## Executive Summary: 1-Page Overview of Key Articles with Sector Insights")
-    st.markdown(exec_md)
+        st.markdown(exec_md)
 
-    # 4. Summary of Articles (3-4 bullets each, no outlook)
-    st.markdown("## Summary of Articles")
-    for summ in summaries:
-        st.markdown(f"### {summ['title']}")
-        # display only first 4 summary points
-        for point in summ.get('summary', [])[:4]:
-            st.markdown(f"- {point}")
+    # 4. Summary of Articles (3-4 bullets each, no outlook or metadata)
+    with st.expander("Summary of Articles", expanded=False):
+        for summ in summaries:
+            st.markdown(f"### {summ['title']}")
+            for point in summ.get('summary', [])[:4]:
+                st.markdown(f"- {point}")
 
     # 5. Sources
-    st.markdown("## Sources of Articles")
-    for art in raw_articles:
-        st.write(f"- [{art['title']}]({art['url']})")
+    with st.expander("Sources of Articles", expanded=False):
+        for art in raw_articles:
+            st.write(f"- [{art['title']}]({art['url']})")
 
 else:
     st.info("Click **Fetch & Summarize** in the sidebar to run the pipeline.")
