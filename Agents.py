@@ -72,7 +72,7 @@ You are a senior financial analyst tasked with writing a one-page executive summ
 Given the following JSON array of article summaries:
 {summaries_json}
 
-Craft a concise, structured, 1-page overview organized by key sectors (e.g., Macroeconomic Updates, Banking & Financial Services, Real Estate & Infrastructure, Power & Energy, Services, Industrial Goods & Services, Consumer Goods, IT & Telecom, Pharma, Auto).
+Craft a concise, structured, 1-page overview organized by key sectors (e.g., Macroeconomic Updates, Banking & Financial Services, Real Estate & Infrastructure, Power & Energy, Services, Metals and Chemicals, Industrial Goods & Services, Consumer Goods, IT & Telecom, Pharma, Auto, Transformation).
 Each section should highlight top bullet points and sector-specific insights.
 This should be followed by an Sector-Specific Analysis sub-section which has Bullish, Bearish and Neutral sections with the appropriate corresponding sectors for each based on your overall analysis of each sector based on its respective article summaries.
 Return only the markdown content for the executive summary.
