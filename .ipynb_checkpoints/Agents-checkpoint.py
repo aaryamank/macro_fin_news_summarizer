@@ -13,8 +13,7 @@ def summarize_agent(title: str, full_text: str) -> str:
       - title: article title
       - summary: list of bullet points
       - impact: describe impact on Indian stock markets
-      - affected sectors: list of sectors
-      - affected stocks: list of stocks
+      - affected: list of sectors/stocks
       - tone: Bullish | Bearish | Neutral
     """
     prompt = f"""
@@ -29,8 +28,8 @@ Provide the following in JSON format exactly:
   "title": "{title}",
   "summary": ["point 1", "point 2", ...],
   "impact": "Describe potential impact on Indian stock markets.",
-  "affected_sectors": ["Sector1", "Sector2", ...],
-  "affected_stocks": ["Stock1", "Stock2", ...],
+  "affected": ["Sector1", "Sector2", ...],
+  "affected": ["Stock1", "Stock2", ...],
   "tone": "Bullish|Bearish|Neutral"
 }}
 """
@@ -50,28 +49,13 @@ def aggregate_agent(summaries_json: str) -> str:
     - Outlook line per article indicating impact, affected sectors, and tone
     """
     prompt = f"""
-You are a macro‑economic and financial news synthesizer.
+You are a macro-economic and financial news synthesizer.
+The following is a JSON array of article summaries:
+{summaries_json}
 
-INPUT: A JSON array of article summaries, where each object has:
-- title
-- summary (list of bullet points)
-- impact (string)
-- affected_sectors (list)
-- affected_stocks (list)
-- tone (Bullish/Bearish/Neutral)
+Please produce a markdown report with each article grouped under its title as a header, followed by its summary bullet points and an "Outlook:" line stating impact, affected sectors, affected stocks (if any) and tone.
 
-Produce a **single** markdown report that, for **each article**, shows:
-
-## Article Title
-- summary point 1
-- summary point 2
-Outlook:
-  - Impact: …
-  - Affected Sectors: …
-  - Affected Stocks: …
-  - Tone: …
-
-Return only the markdown content with **all** articles in order.
+Return only the markdown content.
 """
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
