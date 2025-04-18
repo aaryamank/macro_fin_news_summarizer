@@ -34,7 +34,7 @@ Provide the following in JSON format exactly:
 }}
 """
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo-16k",
+        model="gpt-4.1-nano",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.4
     )
@@ -58,7 +58,7 @@ Please produce a markdown report with each article grouped under its title as a 
 Return only the markdown content.
 """
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo-16k",
+        model="gpt-4.1-nano",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.4
     )
