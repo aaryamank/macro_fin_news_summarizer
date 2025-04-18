@@ -31,7 +31,11 @@ def chunked_aggregate(summaries, chunk_size=20, model="gpt-3.5-turbo"):
     merge_prompt = (
         "You are a macro‑economic and financial news synthesizer.\n"
         "Combine the following partial markdown reports into one unified markdown document, "
-        "deduplicating any repeated points. Return only the final markdown:\n\n"
+        "deduplicating any repeated points. For each article, preserve:\n"
+        "- Its header\n"
+        "- Its summary bullet points\n"
+        "- An Outlook section listing Impact, Affected Sectors, Affected Stocks, Tone\n"
+        "Return only the final markdown.\n\n"
         + "\n\n".join(partial_reports)
     )
     resp = openai.ChatCompletion.create(
