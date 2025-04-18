@@ -63,3 +63,23 @@ Return only the markdown content.
         temperature=0.4
     )
     return response.choices[0].message.content.strip()
+
+
+# Executive summary agent (new)
+def executive_summary_agent(summaries_json: str) -> str:
+    prompt = f"""
+You are a senior financial analyst tasked with writing a one-page executive summary.
+Given the following JSON array of article summaries:
+{summaries_json}
+
+Craft a concise, structured, 1-page overview organized by key sectors (e.g., Macroeconomic Updates, Banking & Financial Services, Real Estate & Infrastructure, Power & Energy, Services, Industrial Goods & Services, IT & Telecom, Pharma, Auto).
+Each section should highlight top bullet points and sector-specific insights.
+This should be followed by an Sector-Specific Analysis sub-section which has Bullish, Bearish and Neutral sections with the appropriate corresponding sectors for each based on your overall analysis of each sector based on its respective article summaries.
+Return only the markdown content for the executive summary.
+"""
+    response = openai.ChatCompletion.create(
+        model="gpt-4.1-nano",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.4
+    )
+    return response.choices[0].message.content.strip()
