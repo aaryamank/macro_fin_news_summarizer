@@ -1,8 +1,50 @@
 ### app.py ###
 import streamlit as st
 import json
+import yfinance as yf
 from Fetchers import fetch_et_articles, fetch_snippet, fetch_full_text
 from Agents import summarize_agent, aggregate_agent, executive_summary_agent
+
+# Helper: fetch market data via yfinance
+def fetch_market_data():
+    symbols = {
+        "S&P 500": "^GSPC",
+        "Dow Jones Industrial Average": "^DJI",
+        "Nifty 50": "^NSEI",
+        "Nifty 500": "^CNX500",
+        "USD/INR": "INR=X",
+        "Gold": "GC=F",
+        "US 10Y Treasury Yield": "^TNX"
+    }
+    records = []
+    for name, sym in symbols.items():
+        try:
+            ticker = yf.Ticker(sym)
+            # Fetch recent history for day-ago and week-ago closes
+            hist = ticker.history(period="8d")
+            if hist.empty:
+                raise ValueError("No history data")
+            # Use last available close as current proxy
+            current_price = hist['Close'][-1]
+            prev_close = hist['Close'][-2] if len(hist) >= 2 else None
+            week_ago_close = hist['Close'][-6] if len(hist) >= 6 else None
+            # Calculate changes
+            day_change = current_price - prev_close if prev_close else None
+            week_change = current_price - week_ago_close if week_ago_close else None
+            day_pct = (day_change / prev_close * 100) if prev_close else None
+            week_pct = (week_change / week_ago_close * 100) if week_ago_close else None
+        except Exception:
+            current_price = prev_close = week_ago_close = None
+            day_change = week_change = day_pct = week_pct = None
+        records.append({
+            'Market': name,
+            'Price': current_price,
+            'Day Change': day_change,
+            'Day %': day_pct,
+            'Week Change': week_change,
+            'Week %': week_pct
+        })
+    return pd.DataFrame(records)(data, orient="index")
 
 st.set_page_config(page_title="News Swarm", layout="wide")
 st.title("📰 Financial and Economic News Summarizer")
@@ -37,6 +79,9 @@ if st.sidebar.button("Fetch & Summarize"):
 
     # 3. Executive Summary
     with st.expander("Executive Summary: 1-Page Overview of Key Articles with Sector Insights", expanded=False):
+        st.subheader("Live Market Update")
+        mkt_df = fetch_market_data()
+        st.dataframe(mkt_df)
         exec_md = executive_summary_agent(json.dumps(summaries, indent=2))
         # Escape dollar signs to prevent markdown math/font issues
         safe_exec_md = exec_md.replace("$", "\$")

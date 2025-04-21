@@ -6,9 +6,9 @@ import dateutil.parser
 # Economic Times category pages to scrape
 ET_CATEGORIES = [
     "https://economictimes.indiatimes.com/news/economy/indicators",
+    "https://economictimes.indiatimes.com/news/economy/foreign-trade",
     "https://economictimes.indiatimes.com/markets/stocks/earnings/news",
     "https://economictimes.indiatimes.com/news/international/business",
-    "https://economictimes.indiatimes.com/news/economy/foreign-trade",
     "https://economictimes.indiatimes.com/industry/energy/power",
     "https://economictimes.indiatimes.com/industry/energy/oil-gas",
     "https://economictimes.indiatimes.com/tech/information-tech",
