@@ -2,6 +2,7 @@
 import streamlit as st
 import json
 import yfinance as yf
+import pandas as pd
 from Fetchers import fetch_et_articles, fetch_snippet, fetch_full_text
 from Agents import summarize_agent, aggregate_agent, executive_summary_agent
 
