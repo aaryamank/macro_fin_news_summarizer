@@ -45,7 +45,7 @@ def fetch_market_data():
             'Week Change': week_change,
             'Week %': week_pct
         })
-    return pd.DataFrame(records)(data, orient="index")
+    return pd.DataFrame(records)
 
 st.set_page_config(page_title="News Swarm", layout="wide")
 st.title("📰 Financial and Economic News Summarizer")
