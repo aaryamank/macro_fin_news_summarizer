@@ -12,40 +12,43 @@ def fetch_market_data():
         "S&P 500": "^GSPC",
         "Dow Jones Industrial Average": "^DJI",
         "Nifty 50": "^NSEI",
-        "Nifty 500": "^CNX500",
+        "Sensex": "^BSESN",
         "USD/INR": "INR=X",
         "Gold": "GC=F",
         "US 10Y Treasury Yield": "^TNX"
     }
     records = []
+    # We need history for up to 3 months (~63 trading days)
     for name, sym in symbols.items():
         try:
             ticker = yf.Ticker(sym)
-            # Fetch recent history for day-ago and week-ago closes
-            hist = ticker.history(period="8d")
+            hist = ticker.history(period="100d")
             if hist.empty:
                 raise ValueError("No history data")
-            # Use last available close as current proxy
-            current_price = hist['Close'][-1]
-            prev_close = hist['Close'][-2] if len(hist) >= 2 else None
-            week_ago_close = hist['Close'][-6] if len(hist) >= 6 else None
-            # Calculate changes
-            day_change = current_price - prev_close if prev_close else None
-            week_change = current_price - week_ago_close if week_ago_close else None
-            day_pct = (day_change / prev_close * 100) if prev_close else None
-            week_pct = (week_change / week_ago_close * 100) if week_ago_close else None
+            closes = hist['Close']
+            current = closes.iloc[-1]
+            prev_close = closes.iloc[-2] if len(closes) >= 2 else None
+            week_close = closes.iloc[-6] if len(closes) >= 6 else None
+            month_close = closes.iloc[-22] if len(closes) >= 22 else None
+            three_month_close = closes.iloc[-64] if len(closes) >= 64 else None
+            # Percentage changes
+            day_pct = (current - prev_close) / prev_close * 100 if prev_close else None
+            week_pct = (current - week_close) / week_close * 100 if week_close else None
+            month_pct = (current - month_close) / month_close * 100 if month_close else None
+            three_month_pct = (current - three_month_close) / three_month_close * 100 if three_month_close else None
         except Exception:
-            current_price = prev_close = week_ago_close = None
-            day_change = week_change = day_pct = week_pct = None
+            current = prev_close = week_close = month_close = three_month_close = None
+            day_pct = week_pct = month_pct = three_month_pct = None
         records.append({
             'Market': name,
-            'Price': current_price,
-            'Day Change': day_change,
+            'Price': current,
             'Day %': day_pct,
-            'Week Change': week_change,
-            'Week %': week_pct
+            'Week %': week_pct,
+            'Month %': month_pct,
+            '3-Month %': three_month_pct
         })
     return pd.DataFrame(records)
+
 
 st.set_page_config(page_title="News Swarm", layout="wide")
 st.title("📰 Financial and Economic News Summarizer")
