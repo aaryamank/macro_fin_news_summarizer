@@ -54,7 +54,7 @@ st.set_page_config(page_title="News Swarm", layout="wide")
 st.title("📰 Financial and Economic News Summarizer")
 
 st.markdown("""
-This app scrapes recent macro‑economic and financial news articles,
+This app scrapes macro‑economic and financial news articles over the last 24 hours,
 summarizes each with GPT, generates an executive overview, and then presents detailed article summaries and sources in separate sections.
 """)
 
