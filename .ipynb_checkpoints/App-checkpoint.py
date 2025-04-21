@@ -42,10 +42,10 @@ def fetch_market_data():
         records.append({
             'Market': name,
             'Price': current,
-            'Day %': day_pct,
-            'Week %': week_pct,
-            'Month %': month_pct,
-            '3-Month %': three_month_pct
+            '1-Day Chg%': day_pct,
+            '1-Week Chg%': week_pct,
+            '1-Month Chg%': month_pct,
+            '3-Month Chg%': three_month_pct
         })
     return pd.DataFrame(records)
 

@@ -74,7 +74,7 @@ Given the following JSON array of article summaries:
 
 Craft a concise, structured, 1-page overview organized by exactly the following key sectors - Macroeconomic Updates, Banking & Financial Services, Infrastructure, Power & Energy, IT & Telecom, Metals and Chemicals, Industrial Goods, Consumer Goods, Real Estate, Services, Pharma, Auto.
 Each section should highlight top bullet points and sector-specific insights.
-This should be followed by an Sector-Specific Analysis sub-section which has Bullish, Bearish and Neutral sections with the appropriate corresponding sectors for each based on your overall analysis of each sector based on its respective article summaries.
+This should be followed by an Sector-Specific Analysis sub-section which has Tailwinds, Headwinds and Neutral sections with the appropriate corresponding sectors for each based on your overall analysis of each sector based on its respective article summaries.
 Return only the markdown content for the executive summary.
 """
     response = openai.ChatCompletion.create(
