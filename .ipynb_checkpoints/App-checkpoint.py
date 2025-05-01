@@ -1,10 +1,34 @@
 ### app.py ###
 import streamlit as st
 import json
+import time
 import yfinance as yf
 import pandas as pd
 from Fetchers import fetch_et_articles, fetch_snippet, fetch_full_text
 from Agents import summarize_agent, aggregate_agent, executive_summary_agent
+
+def safe_fetch_yfinance(ticker, period="100d", interval="1d", retries=3, delay=1):
+    
+    for attempt in range(1, retries + 1):
+        try:
+            df = yf.download(ticker, period=period, interval=interval, progress=False)
+            if df is not None and not df.empty:
+                return df
+        except Exception as e:
+            print(f"Attempt {attempt} failed for {ticker}: {e}")
+        time.sleep(delay)
+    
+    # Fallback to history
+    try:
+        df = yf.Ticker(ticker).history(period=period, interval=interval)
+        if df is not None and not df.empty:
+            return df
+    except Exception as e:
+        print(f"Fallback history() failed for {ticker}: {e}")
+    
+    print(f"❌ No data for {ticker} after retries and fallback.")
+    return pd.DataFrame()
+    
 
 # Helper: fetch market data via yfinance
 def fetch_market_data():
@@ -18,13 +42,11 @@ def fetch_market_data():
         "US 10Y Treasury Yield": "^TNX"
     }
     records = []
-    # We need history for up to 3 months (~63 trading days)
     for name, sym in symbols.items():
         try:
-            ticker = yf.Ticker(sym)
-            hist = ticker.history(period="100d")
-            if hist.empty:
-                raise ValueError("No history data")
+            hist = safe_fetch_yfinance(sym, period="100d")
+            if hist.empty or 'Close' not in hist.columns:
+                raise ValueError(f"No closing data for {name}")
             closes = hist['Close']
             current = closes.iloc[-1]
             prev_close = closes.iloc[-2] if len(closes) >= 2 else None
@@ -36,9 +58,11 @@ def fetch_market_data():
             week_pct = (current - week_close) / week_close * 100 if week_close else None
             month_pct = (current - month_close) / month_close * 100 if month_close else None
             three_month_pct = (current - three_month_close) / three_month_close * 100 if three_month_close else None
-        except Exception:
+        except Exception as e:
+            print(f"⚠️ Error for {name}: {e}")
             current = prev_close = week_close = month_close = three_month_close = None
             day_pct = week_pct = month_pct = three_month_pct = None
+
         records.append({
             'Market': name,
             'Price': current,
@@ -47,6 +71,7 @@ def fetch_market_data():
             '1-Month Chg%': month_pct,
             '3-Month Chg%': three_month_pct
         })
+
     return pd.DataFrame(records)
 
 
@@ -88,7 +113,7 @@ if st.sidebar.button("Fetch & Summarize"):
         st.dataframe(mkt_df)
         exec_md = executive_summary_agent(json.dumps(summaries, indent=2))
         # Escape dollar signs to prevent markdown math/font issues
-        safe_exec_md = exec_md.replace("$", "\$")
+        safe_exec_md = exec_md.replace("$", "\\$")
         st.markdown(safe_exec_md)
 
     # 4. Summary of Articles (3-4 bullets each, no outlook or metadata)
