@@ -122,7 +122,8 @@ if st.sidebar.button("Fetch & Summarize"):
                 summ_json = json.loads(summarize_agent(art['title'], full))
                 summaries.append(summ_json)
             except Exception as e:
-                st.warning(f"Failed to summarize '{art['title']}': {e}")
+                print(f"❌ Failed to summarize '{art['title']}': {e}")
+                continue  # Skip this article in output
     if not summaries:
         st.error("No summaries generated. Check your fetchers or API key.")
         st.stop()
@@ -130,9 +131,9 @@ if st.sidebar.button("Fetch & Summarize"):
 
     # 3. Executive Summary
     with st.expander("Executive Summary: 1-Page Overview of Key Articles with Sector Insights", expanded=False):
-        st.subheader("Live Market Update")
-        mkt_df = fetch_market_data()
-        st.dataframe(mkt_df)
+        # st.subheader("Live Market Update")
+        # mkt_df = fetch_market_data()
+        # st.dataframe(mkt_df)
         exec_md = executive_summary_agent(json.dumps(summaries, indent=2))
         # Escape dollar signs to prevent markdown math/font issues
         safe_exec_md = exec_md.replace("$", "\\$")
