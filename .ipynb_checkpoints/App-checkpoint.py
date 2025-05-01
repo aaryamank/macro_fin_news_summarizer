@@ -7,26 +7,42 @@ import pandas as pd
 from Fetchers import fetch_et_articles, fetch_snippet, fetch_full_text
 from Agents import summarize_agent, aggregate_agent, executive_summary_agent
 
-def safe_fetch_yfinance(ticker, period="100d", interval="1d", retries=3, delay=1):
-    
+def safe_fetch_yfinance(ticker, period="100d", interval="1d", retries=5, base_delay=2):
+    """
+    Tries to fetch Yahoo Finance data with retry + exponential backoff.
+    Falls back to .history() if download() fails repeatedly.
+    """
     for attempt in range(1, retries + 1):
         try:
-            df = yf.download(ticker, period=period, interval=interval, progress=False)
+            print(f"🔁 Attempt {attempt} for {ticker} using download()")
+            df = yf.download(ticker, period=period, interval=interval, progress=False, threads=False)
             if df is not None and not df.empty:
+                print("✅ Success via download()")
                 return df
+        except yf.shared._exceptions.YFRateLimitError as e:
+            wait_time = base_delay * attempt
+            print(f"⏳ Rate limited. Waiting {wait_time} sec (Attempt {attempt}/{retries})")
+            for i in range(wait_time, 0, -1):
+                print(f"   ⏱ {i} sec remaining...", end="\r")
+                time.sleep(1)
         except Exception as e:
-            print(f"Attempt {attempt} failed for {ticker}: {e}")
-        time.sleep(delay)
-    
-    # Fallback to history
+            print(f"⚠️ Error on download attempt {attempt}: {e}")
+            time.sleep(base_delay * attempt)
+
+    # Fallback to .history()
     try:
-        df = yf.Ticker(ticker).history(period=period, interval=interval)
+        print(f"⛑ Fallback to .history() for {ticker}")
+        ticker_obj = yf.Ticker(ticker)
+        df = ticker_obj.history(period=period, interval=interval)
         if df is not None and not df.empty:
+            print("✅ Success via .history() fallback")
             return df
+        else:
+            print("⚠️ .history() returned empty")
     except Exception as e:
-        print(f"Fallback history() failed for {ticker}: {e}")
-    
-    print(f"❌ No data for {ticker} after retries and fallback.")
+        print(f"❌ .history() failed: {e}")
+
+    print(f"❌ Final failure: No data returned for {ticker}")
     return pd.DataFrame()
     
 
@@ -41,27 +57,30 @@ def fetch_market_data():
         "Gold": "GC=F",
         "US 10Y Treasury Yield": "^TNX"
     }
+
     records = []
+
     for name, sym in symbols.items():
-        try:
-            hist = safe_fetch_yfinance(sym, period="100d")
-            if hist.empty or 'Close' not in hist.columns:
-                raise ValueError(f"No closing data for {name}")
+        print(f"\n📊 Fetching {name} ({sym})")
+        hist = safe_fetch_yfinance(sym, period="100d", interval="1d")
+
+        if hist.empty or 'Close' not in hist.columns:
+            print(f"⚠️ Skipping {name} — no data available.")
+            current = prev_close = week_close = month_close = three_month_close = None
+            day_pct = week_pct = month_pct = three_month_pct = None
+        else:
             closes = hist['Close']
             current = closes.iloc[-1]
             prev_close = closes.iloc[-2] if len(closes) >= 2 else None
             week_close = closes.iloc[-6] if len(closes) >= 6 else None
             month_close = closes.iloc[-22] if len(closes) >= 22 else None
             three_month_close = closes.iloc[-64] if len(closes) >= 64 else None
-            # Percentage changes
-            day_pct = (current - prev_close) / prev_close * 100 if prev_close else None
-            week_pct = (current - week_close) / week_close * 100 if week_close else None
-            month_pct = (current - month_close) / month_close * 100 if month_close else None
-            three_month_pct = (current - three_month_close) / three_month_close * 100 if three_month_close else None
-        except Exception as e:
-            print(f"⚠️ Error for {name}: {e}")
-            current = prev_close = week_close = month_close = three_month_close = None
-            day_pct = week_pct = month_pct = three_month_pct = None
+
+            # Compute % changes
+            day_pct = ((current - prev_close) / prev_close * 100) if prev_close else None
+            week_pct = ((current - week_close) / week_close * 100) if week_close else None
+            month_pct = ((current - month_close) / month_close * 100) if month_close else None
+            three_month_pct = ((current - three_month_close) / three_month_close * 100) if three_month_close else None
 
         records.append({
             'Market': name,
@@ -71,6 +90,9 @@ def fetch_market_data():
             '1-Month Chg%': month_pct,
             '3-Month Chg%': three_month_pct
         })
+
+        # Avoid hammering Yahoo Finance
+        time.sleep(1.5)
 
     return pd.DataFrame(records)
 
